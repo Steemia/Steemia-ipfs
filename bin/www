@@ -1,0 +1,83 @@
+#!/usr/bin/env node
+
+// Node dependencies
+import app from "../src/server";
+let debug = require('debug')('ipfs-server:server');
+import { createServer } from "http";
+
+// Set port from local environment into Express instance.
+let port = sanitizePort(process.env.PORT || '5000');
+app.set('port', port);
+
+// Create an instance of a HTTP server.
+let server = createServer(app);
+
+// Listent to the provider port on all network interfaces.
+server.listen(port);
+server.on('error', onError); // Catch errors ocurred in the server by binding the event listener.
+server.on('listening', onListening); // Event listener for the listening event of the server.
+
+/**
+ * Method to sanitize the port input
+ * @method sanitizePort
+ * @param {any} value: Port of the server
+ * @returns the sanitized value of the port
+ */
+function sanitizePort(value) {
+  let port = parseInt(value, 10);
+
+  // If the port is not a number, return its value as string
+  if (isNaN(port)) return value;
+
+  if (port >= 0) return value;
+
+  return false;
+}
+
+/**
+ * Event listener for HTTP server error event
+ * @method onError 
+ * @param {Error} error: error object
+ * @throws an error and exit the process
+ */
+function onError(error) {
+  if (error.syscall !== 'listen')
+    throw error;
+
+  var bind = typeof port === 'string'
+    ? 'Pipe ' + port
+    : 'Port ' + port;
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+
+    // permission rejected case
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges');
+      process.exit(1);
+      break;
+
+    // port in use case
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use');
+      process.exit(1);
+      break;
+
+    default:
+      throw error;
+  }
+}
+
+/**
+ * Event listener for HTTP server listening event
+ * @method onListening
+ */
+function onListening() {
+  let addr = server.address();
+  let bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
+  debug('Listening on ' + bind);
+  console.log('Server running sucessfully :)');
+  console.log('Listening on ' + bind);
+}
